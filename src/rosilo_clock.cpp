@@ -37,9 +37,6 @@
 
 #include "rosilo_clock/rosilo_clock.h"
 
-#define NSEC_TO_SEC   1000000000
-#define NSEC_TO_SEC_D 1000000000.0
-
 namespace rosilo
 {
 

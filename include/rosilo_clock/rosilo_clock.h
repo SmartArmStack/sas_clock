@@ -41,6 +41,9 @@
 namespace rosilo
 {
 
+const int NSEC_TO_SEC = 1000000000;
+const double NSEC_TO_SEC_D = 1000000000.0;
+
 class Clock
 {
 private:
