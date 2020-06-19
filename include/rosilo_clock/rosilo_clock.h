@@ -37,6 +37,7 @@
 # ################################################################*/
 
 #include <atomic>
+#include <chrono>
 
 namespace rosilo
 {
@@ -48,25 +49,18 @@ class Clock
 {
 private:
 
-    struct timespec loop_time_;
-    struct timespec before_loop_;
-    struct timespec after_loop_;
-    struct timespec elapsed_time_;
-    struct timespec computation_time_;
-    long   thread_sampling_time_nsec_;
-    double thread_sampling_time_nsec_d_;
-    double thread_sampling_time_sec_d_;
-    double initial_time_;
+    std::chrono::system_clock::time_point time_initial_;
+    std::chrono::system_clock::time_point next_loop_deadline_;
 
-    double sleep_time_d_;
-    double computation_time_d_;
-    double after_loop_d_;
+    std::chrono::system_clock::time_point time_before_sleep_;
+    std::chrono::system_clock::time_point time_after_sleep_;
 
-    //Auxiliar function
-    void timespec_diff(const struct timespec& start, const struct timespec& stop,
-                       struct timespec& result) const;
+    std::chrono::nanoseconds target_sampling_time_;
+    std::chrono::nanoseconds loop_duration_;
+    std::chrono::nanoseconds computation_duration_;
+    std::chrono::nanoseconds sleep_duration_;
 
-    double timespec_to_double_sec(const struct timespec& ts) const;
+    void _print_license_header();
 
 public:
     Clock()=delete;
@@ -79,11 +73,11 @@ public:
 
     void update_and_sleep();
 
-    double get_initial_time() const;
+    std::chrono::system_clock::time_point get_initial_time() const;
 
     double get_sleep_time() const;
 
-    double get_last_update_time() const;
+    std::chrono::system_clock::time_point get_last_update_time() const;
 
     double get_computation_time() const;
 

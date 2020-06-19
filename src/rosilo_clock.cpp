@@ -34,126 +34,90 @@
 # ################################################################*/
 
 #include <ros/ros.h>
+#include <thread>
 
 #include "rosilo_clock/rosilo_clock.h"
 
 namespace rosilo
 {
 
-//Auxiliar function
-void Clock::timespec_diff(const struct timespec& start, const struct timespec& stop,
-                          struct timespec& result) const
-{
-    if ((stop.tv_nsec - start.tv_nsec) < 0)
-    {
-        result.tv_sec = stop.tv_sec - start.tv_sec - 1;
-        result.tv_nsec = stop.tv_nsec - start.tv_nsec + 1000000000;
-    }
-    else
-    {
-        result.tv_sec = stop.tv_sec - start.tv_sec;
-        result.tv_nsec = stop.tv_nsec - start.tv_nsec;
-    }
-
-    return;
-}
-
-double Clock::timespec_to_double_sec(const struct timespec& ts) const
-{
-    return double(ts.tv_sec)+(double(ts.tv_nsec)/NSEC_TO_SEC_D);
-}
-
-
-
-
-Clock::Clock(const int& thread_sampling_time_nsec)
+void Clock::_print_license_header()
 {
     ROS_WARN_STREAM("*********************************");
     ROS_WARN_STREAM("RTC LGPLv3 by Murilo@UT (c) 2020 ");
     ROS_WARN_STREAM("*********************************");
-    thread_sampling_time_nsec_   = thread_sampling_time_nsec;
-    thread_sampling_time_nsec_d_ = (double)thread_sampling_time_nsec_;
-    thread_sampling_time_sec_d_  = thread_sampling_time_nsec_d_/NSEC_TO_SEC_D;
+}
+
+Clock::Clock(const int& thread_sampling_time_nsec)
+{
+    _print_license_header();
+    target_sampling_time_ = std::chrono::nanoseconds(thread_sampling_time_nsec);
 }
 
 Clock::Clock(const double& thread_sampling_time_nsec_d)
 {
-    ROS_WARN_STREAM("*********************************");
-    ROS_WARN_STREAM("RTC LGPLv3 by Murilo@UT (c) 2020 ");
-    ROS_WARN_STREAM("*********************************");
-    thread_sampling_time_nsec_d_ = thread_sampling_time_nsec_d;
-    thread_sampling_time_nsec_   = int(thread_sampling_time_nsec_d);
-    thread_sampling_time_sec_d_  = thread_sampling_time_nsec_d_/NSEC_TO_SEC_D;
+    _print_license_header();
+    target_sampling_time_ = std::chrono::nanoseconds(int(thread_sampling_time_nsec_d));
 }
 
 void Clock::init()
 {
-    clock_gettime(CLOCK_MONOTONIC,&loop_time_);
-    clock_gettime(CLOCK_MONOTONIC,&after_loop_);
-    clock_gettime(CLOCK_MONOTONIC,&before_loop_);
-    initial_time_ = double(loop_time_.tv_sec)+(double(loop_time_.tv_nsec)/NSEC_TO_SEC_D);
-    sleep_time_d_ = 0;
-    computation_time_d_ = 0;
-    after_loop_d_ = 0;
+    // Get initial time
+    time_initial_ = std::chrono::system_clock::now();
+
+    // Initialize all time points
+    time_before_sleep_ = time_initial_;
+    time_after_sleep_ = time_initial_;
+
+    // Set next loop's timeline
+    next_loop_deadline_ = time_initial_ + target_sampling_time_;
 }
 
 void Clock::update_and_sleep()
 {
-    clock_gettime(CLOCK_MONOTONIC,&before_loop_);
-    timespec_diff(after_loop_,before_loop_,computation_time_);
-    computation_time_d_ = (computation_time_.tv_sec)+(double(computation_time_.tv_nsec)/NSEC_TO_SEC_D);
-    //Update clock and sleep
-    if (loop_time_.tv_nsec + thread_sampling_time_nsec_ >= NSEC_TO_SEC)
-    {
-        loop_time_.tv_nsec = loop_time_.tv_nsec - NSEC_TO_SEC + thread_sampling_time_nsec_;
-        loop_time_.tv_sec  = loop_time_.tv_sec  + 1;
-    }
-    else
-    {
-        loop_time_.tv_nsec += thread_sampling_time_nsec_;
-    }
-    clock_nanosleep(CLOCK_MONOTONIC,TIMER_ABSTIME,&loop_time_,NULL);
-    clock_gettime(CLOCK_MONOTONIC,&after_loop_);
-    after_loop_d_ = double(after_loop_.tv_sec)+(double(after_loop_.tv_nsec)/NSEC_TO_SEC_D);
-    timespec_diff(before_loop_,after_loop_,elapsed_time_);
-    sleep_time_d_ = double(elapsed_time_.tv_sec)+(double(elapsed_time_.tv_nsec)/NSEC_TO_SEC_D);
+    time_before_sleep_ = std::chrono::system_clock::now();
+    // The required computation time
+    computation_duration_ = time_before_sleep_ - time_after_sleep_;
+    std::this_thread::sleep_until(next_loop_deadline_);
+    time_after_sleep_  = std::chrono::system_clock::now();
+    // The time spend sleeping
+    sleep_duration_ = time_after_sleep_ - time_before_sleep_;
 }
 
-double Clock::get_initial_time() const
+std::chrono::system_clock::time_point Clock::get_initial_time() const
 {
-    return initial_time_;
+    return time_initial_;
 }
 
 double Clock::get_sleep_time() const
 {
-    return sleep_time_d_;
+    return sleep_duration_.count();
 }
 
-double Clock::get_last_update_time() const
+std::chrono::system_clock::time_point Clock::get_last_update_time() const
 {
-    return after_loop_d_;
+    return time_after_sleep_;
 }
 
 double Clock::get_computation_time() const
 {
-    return computation_time_d_;
+    return computation_duration_.count();
 }
 
 double Clock::get_desired_thread_sampling_time_sec() const
 {
-    return thread_sampling_time_sec_d_;
+    return target_sampling_time_.count();
 }
 
 double Clock::get_effective_thread_sampling_time_sec() const
 {
-    return computation_time_d_+sleep_time_d_;
+    return (sleep_duration_ + computation_duration_).count();
 }
 
 double Clock::get_elapsed_time_sec() const
 {
-    struct timespec current_time;
-    clock_gettime(CLOCK_MONOTONIC,&current_time);
-    return (timespec_to_double_sec(current_time)-get_initial_time());
+    std::chrono::system_clock::time_point current_time = std::chrono::system_clock::now();
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(current_time - get_initial_time()).count();
 }
 
 void Clock::safe_sleep_seconds(const double& seconds, std::atomic_bool* break_loop)
