@@ -5,9 +5,9 @@ project(rosilo_clock)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  rospy
-)
+    roscpp
+    rospy
+    )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -99,11 +99,11 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES rosilo_clock
-  CATKIN_DEPENDS roscpp rospy
-#  DEPENDS system_lib
-)
+    INCLUDE_DIRS include
+    LIBRARIES rosilo_clock
+    CATKIN_DEPENDS roscpp rospy
+    #  DEPENDS system_lib
+    )
 
 ###########
 ## Build ##
@@ -113,13 +113,13 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(include)
 include_directories(
-  ${catkin_INCLUDE_DIRS}
-)
+    ${catkin_INCLUDE_DIRS}
+    )
 
 ## Declare a C++ library
- add_library(rosilo_clock
-   src/rosilo_clock.cpp
- )
+add_library(rosilo_clock
+    src/rosilo_clock.cpp
+    )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -127,16 +127,17 @@ include_directories(
 # add_dependencies(rosilo_clock ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-# add_executable(rosilo_clock_node src/rosilo_clock_node.cpp)
+add_executable(rosilo_clock_example src/rosilo_clock_example.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(rosilo_clock_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(rosilo_clock_example ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(rosilo_clock_node
-#   ${catkin_LIBRARIES}
-# )
+target_link_libraries(rosilo_clock_example
+    rosilo_clock
+    ${catkin_LIBRARIES}
+    )
 
 #############
 ## Install ##

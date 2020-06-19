@@ -68,9 +68,7 @@ void Clock::init()
     // Initialize all time points
     time_before_sleep_ = time_initial_;
     time_after_sleep_ = time_initial_;
-
-    // Set next loop's timeline
-    next_loop_deadline_ = time_initial_ + target_sampling_time_;
+    next_loop_deadline_ = time_initial_;
 }
 
 void Clock::update_and_sleep()
@@ -78,7 +76,12 @@ void Clock::update_and_sleep()
     time_before_sleep_ = std::chrono::system_clock::now();
     // The required computation time
     computation_duration_ = time_before_sleep_ - time_after_sleep_;
+    // Define the next deadline
+    next_loop_deadline_ += target_sampling_time_;
+
+    //Sleep until the deadline
     std::this_thread::sleep_until(next_loop_deadline_);
+
     time_after_sleep_  = std::chrono::system_clock::now();
     // The time spend sleeping
     sleep_duration_ = time_after_sleep_ - time_before_sleep_;
@@ -101,23 +104,23 @@ std::chrono::system_clock::time_point Clock::get_last_update_time() const
 
 double Clock::get_computation_time() const
 {
-    return computation_duration_.count();
+    return (double(computation_duration_.count())/NSEC_TO_SEC_D);
 }
 
 double Clock::get_desired_thread_sampling_time_sec() const
 {
-    return target_sampling_time_.count();
+    return (double(target_sampling_time_.count()/NSEC_TO_SEC_D));
 }
 
 double Clock::get_effective_thread_sampling_time_sec() const
 {
-    return (sleep_duration_ + computation_duration_).count();
+    return (double((sleep_duration_ + computation_duration_).count())/NSEC_TO_SEC_D);
 }
 
 double Clock::get_elapsed_time_sec() const
 {
     std::chrono::system_clock::time_point current_time = std::chrono::system_clock::now();
-    return std::chrono::duration_cast<std::chrono::nanoseconds>(current_time - get_initial_time()).count();
+    return double(std::chrono::duration_cast<std::chrono::nanoseconds>(current_time - get_initial_time()).count())/NSEC_TO_SEC_D;
 }
 
 void Clock::safe_sleep_seconds(const double& seconds, std::atomic_bool* break_loop)
