@@ -24,6 +24,8 @@
 
 
 #include <iostream>
+#include <thread>
+#include <chrono>
 
 #include <rosilo_clock/rosilo_clock.h>
 
@@ -40,7 +42,8 @@ int main(int, char**)
         std::cout << "  Elapsed time: " << clock.get_elapsed_time_sec() << std::endl;
         std::cout << "  Computation time: " << clock.get_computation_time() << std::endl;
         std::cout << "  Effective thread sampling time: " << clock.get_effective_thread_sampling_time_sec() << std::endl;
-        std::cout << "  Desired thread sampling time: " << clock.get_desired_thread_sampling_time_sec() << std::endl << std::endl;
+        std::cout << "  Desired thread sampling time: " << clock.get_desired_thread_sampling_time_sec() << std::endl;
+        std::cout << "  Overrun count: " << clock.get_overrun_count() << std::endl << std::endl;
     }
 
     return 0;

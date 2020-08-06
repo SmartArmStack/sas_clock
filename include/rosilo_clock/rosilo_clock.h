@@ -47,13 +47,14 @@ private:
     std::chrono::nanoseconds computation_duration_;
     std::chrono::nanoseconds sleep_duration_;
 
+    long overrun_sampling_time_count_;
+
     void _print_license_header();
 
 public:
     Clock()=delete;
 
     explicit Clock(const int& thread_sampling_time_nsec);
-
     explicit Clock(const double& thread_sampling_time_nsec_d);
 
     void init();
@@ -78,6 +79,7 @@ public:
 
     void blocking_sleep_seconds(const double& seconds);
 
+    long get_overrun_count() const;
 };
 
 }

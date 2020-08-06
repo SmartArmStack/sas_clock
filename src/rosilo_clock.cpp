@@ -38,13 +38,15 @@ void Clock::_print_license_header()
     ROS_WARN_STREAM("*********************************");
 }
 
-Clock::Clock(const int& thread_sampling_time_nsec)
+Clock::Clock(const int& thread_sampling_time_nsec):
+    overrun_sampling_time_count_(0)
 {
     _print_license_header();
     target_sampling_time_ = std::chrono::nanoseconds(thread_sampling_time_nsec);
 }
 
-Clock::Clock(const double& thread_sampling_time_nsec_d)
+Clock::Clock(const double& thread_sampling_time_nsec_d):
+    overrun_sampling_time_count_(0)
 {
     _print_license_header();
     target_sampling_time_ = std::chrono::nanoseconds(int(thread_sampling_time_nsec_d));
@@ -59,15 +61,30 @@ void Clock::init()
     time_before_sleep_ = time_initial_;
     time_after_sleep_ = time_initial_;
     next_loop_deadline_ = time_initial_;
+
+    overrun_sampling_time_count_ = 0;
 }
 
 void Clock::update_and_sleep()
 {
     time_before_sleep_ = std::chrono::system_clock::now();
+
     // The required computation time
     computation_duration_ = time_before_sleep_ - time_after_sleep_;
+
     // Define the next deadline
+    // It is important to not define an impossible deadline. We also add the number
+    // of deadline overruns safely to a counter.
     next_loop_deadline_ += target_sampling_time_;
+    while(next_loop_deadline_ < (time_before_sleep_))
+    {
+        next_loop_deadline_ += target_sampling_time_;
+        // Increase counter only if it won't cause an overflow
+        if(overrun_sampling_time_count_+1 < std::numeric_limits<long>().max())
+        {
+            overrun_sampling_time_count_++;
+        }
+    }
 
     //Sleep until the deadline
     std::this_thread::sleep_until(next_loop_deadline_);
@@ -127,6 +144,11 @@ void Clock::blocking_sleep_seconds(const double& seconds)
     {
         update_and_sleep();
     }
+}
+
+long Clock::get_overrun_count() const
+{
+    return overrun_sampling_time_count_;
 }
 
 };
