@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(rosilo_clock)
+project(sas_clock)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -20,7 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
     INCLUDE_DIRS include
-    LIBRARIES rosilo_clock
+    LIBRARIES sas_clock
     CATKIN_DEPENDS roscpp rospy
     #  DEPENDS system_lib
     )
@@ -37,25 +37,25 @@ include_directories(
     )
 
 ## Declare a C++ library
-add_library(rosilo_clock
-    src/rosilo_clock.cpp
+add_library(sas_clock
+    src/sas_clock.cpp
     )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-# add_dependencies(rosilo_clock ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(sas_clock ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-add_executable(rosilo_clock_example src/rosilo_clock_example.cpp)
+add_executable(sas_clock_example src/sas_clock_example.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-add_dependencies(rosilo_clock_example ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(sas_clock_example ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(rosilo_clock_example
-    rosilo_clock
+target_link_libraries(sas_clock_example
+    sas_clock
     ${catkin_LIBRARIES}
     )
     
@@ -78,7 +78,7 @@ install(TARGETS ${PROJECT_NAME}
   DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )
 
-install(TARGETS rosilo_clock_example
+install(TARGETS sas_clock_example
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
