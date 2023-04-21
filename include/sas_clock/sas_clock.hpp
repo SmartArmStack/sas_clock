@@ -50,6 +50,7 @@ private:
 
 public:
     Clock()=delete;
+    Clock(const int&)=delete;
 
     explicit Clock(const double& sampling_time_in_seconds);
 

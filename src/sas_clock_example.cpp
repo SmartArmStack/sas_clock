@@ -32,7 +32,7 @@
 int main(int, char**)
 {
     //10 ms
-    sas::Clock clock(10000000);
+    sas::Clock clock(0.01);
 
     clock.init();
     for(int i=0;i<50;i++)
