@@ -27,7 +27,7 @@
 #include <thread>
 #include <chrono>
 
-#include <sas_clock/sas_clock.h>
+#include <sas_clock/sas_clock.hpp>
 
 int main(int, char**)
 {

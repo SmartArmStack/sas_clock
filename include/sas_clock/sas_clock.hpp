@@ -29,9 +29,6 @@
 namespace sas
 {
 
-const int NSEC_TO_SEC = 1000000000;
-const double NSEC_TO_SEC_D = 1000000000.0;
-
 class Clock
 {
 private:
@@ -54,8 +51,7 @@ private:
 public:
     Clock()=delete;
 
-    explicit Clock(const int& thread_sampling_time_nsec);
-    explicit Clock(const double& thread_sampling_time_nsec_d);
+    explicit Clock(const double& sampling_time_in_seconds);
 
     void init();
 
